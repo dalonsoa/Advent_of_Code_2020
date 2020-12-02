@@ -6,8 +6,8 @@ use std::fs;
 struct Password {
     low: usize,
     high: usize,
-    letter: String,
-    pwd: String,
+    letter: char,
+    pwd: Vec<char>,
 }
 
 impl Password {
@@ -23,21 +23,20 @@ impl Password {
         Password {
             low: data.get(1).unwrap().as_str().parse::<usize>().unwrap(),
             high: data.get(2).unwrap().as_str().parse::<usize>().unwrap(),
-            letter: data.get(3).unwrap().as_str().to_string(),
-            pwd: data.get(4).unwrap().as_str().to_string(),
+            letter: data.get(3).unwrap().as_str().parse::<char>().unwrap(),
+            pwd: data.get(4).unwrap().as_str().chars().collect(),
         }
     }
 
     /// Validates the password according to the old policy
     fn is_valid_old(&self) -> bool {
-        let c = self.pwd.matches(&self.letter).count();
+        let c: usize = self.pwd.iter().filter(|s| **s == self.letter).count();
         c >= self.low && c <= self.high
     }
 
     /// Validates the password according to the new policy
     fn is_valid_new(&self) -> bool {
-        (self.pwd.as_bytes()[self.low - 1] == self.letter.as_bytes()[0])
-            ^ (self.pwd.as_bytes()[self.high - 1] == self.letter.as_bytes()[0])
+        (self.pwd[self.low - 1] == self.letter) ^ (self.pwd[self.high - 1] == self.letter)
     }
 }
 
