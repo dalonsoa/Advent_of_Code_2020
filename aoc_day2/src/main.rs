@@ -16,9 +16,9 @@ impl Password {
     /// The input string must have format "low-high letter: password"
     ///
     /// It is not fast...
-    fn from_str(raw: String) -> Password {
+    fn from_str(raw: &str) -> Password {
         let re = Regex::new(r"(\d+)\W(\d+)\s(\w)\W+(\w+)").unwrap();
-        let data = re.captures(&raw).unwrap();
+        let data = re.captures(raw).unwrap();
 
         Password {
             low: data.get(1).unwrap().as_str().parse::<usize>().unwrap(),
@@ -40,47 +40,43 @@ impl Password {
     }
 }
 
-/// Reads a text file with policy and passwords
-fn get_passwords(args: &[String]) -> Vec<Password> {
-    let filename = &args[1];
+/// Convert a vector of strings into a vector of passwords
+fn get_passwords(pass_str: Vec<String>) -> Vec<Password> {
+    pass_str.iter().map(|s| Password::from_str(s)).collect()
+}
 
+/// Read file into vector of strings
+fn read_file(args: &[String]) -> Vec<String> {
+    let filename = &args[1];
     println!("Reading {}", &args[1]);
 
     fs::read_to_string(filename)
         .expect("Something went wrong reading the file")
         .trim_end()
         .split("\n")
-        .map(|s| Password::from_str(s.to_string()))
+        .map(|s| s.to_string())
         .collect()
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let passwords: Vec<Password> = get_passwords(&args);
-    let mut valid_old: usize = 0;
-    let mut valid_new: usize = 0;
+    let passwords: Vec<Password> = get_passwords(read_file(&args));
 
     // Checking old policy
     println!("Checking old policy...");
+    let mut valid: usize = 0;
     for pwd in passwords.iter() {
-        valid_old += pwd.is_valid_old() as usize
+        valid += pwd.is_valid_old() as usize
     }
-    println!(
-        "Old policy valid passwords: {}/{}",
-        valid_old,
-        passwords.len()
-    );
+    println!("Old policy valid passwords: {}/{}", valid, passwords.len());
 
     // Checking new policy
     println!("Checking new policy...");
+    valid = 0;
     for pwd in passwords.iter() {
-        valid_new += pwd.is_valid_new() as usize
+        valid += pwd.is_valid_new() as usize
     }
-    println!(
-        "New policy valid passwords: {}/{}",
-        valid_new,
-        passwords.len()
-    );
+    println!("New policy valid passwords: {}/{}", valid, passwords.len());
 }
 
 #[cfg(test)]
@@ -88,11 +84,14 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_get_passwords() {}
+
+    #[test]
     fn test_old_policy() {
         let mut valid: usize = 0;
         let passwords: Vec<&str> = vec!["1-3 a: abcde", "1-3 b: cdefg", "2-9 c: ccccccccc"];
         for pwd in passwords.iter() {
-            valid += Password::from_str(pwd.to_string()).is_valid_old() as usize
+            valid += Password::from_str(pwd).is_valid_old() as usize
         }
         assert_eq!(valid, 2)
     }
@@ -102,7 +101,7 @@ mod tests {
         let mut valid: usize = 0;
         let passwords: Vec<&str> = vec!["1-3 a: abcde", "1-3 b: cdefg", "2-9 c: ccccccccc"];
         for pwd in passwords.iter() {
-            valid += Password::from_str(pwd.to_string()).is_valid_new() as usize
+            valid += Password::from_str(pwd).is_valid_new() as usize
         }
         assert_eq!(valid, 1)
     }
