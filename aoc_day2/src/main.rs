@@ -83,3 +83,28 @@ fn main() {
         passwords.len()
     );
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_old_policy() {
+        let mut valid: usize = 0;
+        let passwords: Vec<&str> = vec!["1-3 a: abcde", "1-3 b: cdefg", "2-9 c: ccccccccc"];
+        for pwd in passwords.iter() {
+            valid += Password::from_str(pwd.to_string()).is_valid_old() as usize
+        }
+        assert_eq!(valid, 2)
+    }
+
+    #[test]
+    fn test_new_policy() {
+        let mut valid: usize = 0;
+        let passwords: Vec<&str> = vec!["1-3 a: abcde", "1-3 b: cdefg", "2-9 c: ccccccccc"];
+        for pwd in passwords.iter() {
+            valid += Password::from_str(pwd.to_string()).is_valid_new() as usize
+        }
+        assert_eq!(valid, 1)
+    }
+}
