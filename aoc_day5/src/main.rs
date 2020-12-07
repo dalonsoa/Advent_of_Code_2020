@@ -48,16 +48,16 @@ impl Seat {
 /// Finds your seat id
 ///
 /// The condition is that it should not be in the id list but the +1 and -1 should.
-fn find_id(ids: &Vec<usize>) -> usize {
+fn find_id(ids: &Vec<usize>) -> Option<usize> {
     let maxi = *ids.iter().max().unwrap();
     let mini = *ids.iter().min().unwrap();
 
     for id in mini..maxi {
         if !ids.contains(&id) && ids.contains(&(id - 1)) && ids.contains(&(id + 1)) {
-            return id;
+            return Some(id);
         }
     }
-    return 0;
+    return None;
 }
 
 fn main() {
@@ -73,8 +73,8 @@ fn main() {
     // Your id is...
     let your_id = find_id(&ids);
     match your_id {
-        0 => println!("Your id was not found!!"),
-        _ => println!("Your id is {}", your_id),
+        None => println!("Your id was not found!!"),
+        Some(id) => println!("Your id is {}", id),
     }
 }
 
